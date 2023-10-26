@@ -1,0 +1,38 @@
+function splitDocumentByWords() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var text = body.getText();
+  var words = text.split(/\s+/);  // Splits the text at whitespace
+
+  var chunks = [];
+  var chunk = [];
+  
+  for (var i = 0; i < words.length; i++) {
+    chunk.push(words[i]);
+    
+    // When chunk size reaches 2048 or it's the last word, then find the last period before the limit
+    if(chunk.length == 2048 || i == words.length - 1) {
+      var lastPeriodIndex = chunk.slice(0, -1).join(' ').lastIndexOf('.');
+      if (lastPeriodIndex > 0) {
+        var chunkToRemove = chunk.slice(lastPeriodIndex + 1); // Save the remaining chunk
+        chunk = chunk.slice(0, lastPeriodIndex + 1); // Cut chunk at the last period before the limit
+        i -= chunkToRemove.length; // Decrement index to process the remaining words in the next chunk
+      }
+
+      chunks.push(chunk.join(' '));
+      chunk = [];
+    }
+  }
+
+  // Clear the current document and insert chunks with dividers
+  body.clear();
+  
+  for (var j = 0; j < chunks.length; j++) {
+    body.appendParagraph(chunks[j]);
+    
+    // If it's not the last chunk, append a divider
+    if (j != chunks.length - 1) {
+      body.appendHorizontalRule();
+    }
+  }
+}
